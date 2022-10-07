@@ -8,9 +8,8 @@ import React from 'react'
 import { MainContext } from '../../../pages'
 
 export const EnterNameStep = () => {
-  const [inputValue, setInputValue] = React.useState<string>('')
-  const { onNextStep } = React.useContext(MainContext)
-
+  const { onNextStep, userData, setFieldValue } = React.useContext(MainContext)
+  const [inputValue, setInputValue] = React.useState<string>(userData.fullname)
   const nextDisabled = !inputValue
 
   const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,6 +17,7 @@ export const EnterNameStep = () => {
   }
 
   const onClickNextStep = () => {
+    setFieldValue('fullname', inputValue)
     onNextStep()
   }
 
