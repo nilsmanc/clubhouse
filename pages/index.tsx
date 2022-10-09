@@ -7,7 +7,6 @@ import { EnterPhoneStep } from '../components/steps/EnterPhoneStep'
 import { EnterCodeStep } from '../components/steps/EnterCodeStep'
 import { checkAuth } from '../utils/checkAuth'
 import { Axios } from '../core/axios'
-import { Api } from '../api'
 import { wrapper } from '../redux/store'
 
 const stepsComponents = {
@@ -49,13 +48,13 @@ const getUserData = (): UserData | null => {
 
 const getFormStep = (): number => {
   const json = getUserData()
-  if (json) {
-    if (json.phone) {
-      return 5
-    } else {
-      return 4
-    }
-  }
+  // if (json) {
+  //   if (json.phone) {
+  //     return 5;
+  //   } else {
+  //     return 4;
+  //   }
+  // }
   return 0
 }
 

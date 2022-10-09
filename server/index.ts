@@ -7,7 +7,6 @@ import { createServer } from 'http'
 import cors from 'cors'
 import { passport } from './core/passport'
 import { uploader } from './core/uploader'
-
 import AuthController from './controllers/AuthController'
 import RoomController from './controllers/RoomController'
 import { Room } from '../models'
@@ -81,7 +80,22 @@ io.on('connection', (socket) => {
     Room.update({ speakers }, { where: { id: roomId } })
   })
 
+  socket.on('CLIENT@ROOMS:CALL', ({ user, roomId, signal }) => {
+    socket.broadcast.to(`room/${roomId}`).emit('SERVER@ROOMS:CALL', {
+      user,
+      signal,
+    })
+  })
+
+  socket.on('CLIENT@ROOMS:ANSWER', ({ targetUserId, roomId, signal }) => {
+    socket.broadcast.to(`room/${roomId}`).emit('SERVER@ROOMS:ANSWER', {
+      targetUserId,
+      signal,
+    })
+  })
+
   socket.on('disconnect', () => {
+    console.log('USERS:' + rooms)
     if (rooms[socket.id]) {
       const { roomId, user } = rooms[socket.id]
       socket.broadcast.to(`room/${roomId}`).emit('SERVER@ROOMS:LEAVE', user)
