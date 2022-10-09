@@ -10,6 +10,9 @@ import { uploader } from './core/uploader'
 
 import AuthController from './controllers/AuthController'
 import RoomController from './controllers/RoomController'
+import { Room } from '../models'
+import { UserData } from '../pages'
+import { getUsersFromRoom, SocketRoom } from '../utils/getUsersFromRoom'
 
 dotenv.config({
   path: 'server/.env',
@@ -64,7 +67,7 @@ app.post('/upload', uploader.single('photo'), (req, res) => {
     })
 })
 
-const rooms: Record<string, any> = {}
+export const rooms: SocketRoom = {}
 
 io.on('connection', (socket) => {
   console.log('К СОКЕТАМ ПОДКЛЮЧИЛИСЬ!', socket.id)
@@ -72,12 +75,10 @@ io.on('connection', (socket) => {
   socket.on('CLIENT@ROOMS:JOIN', ({ user, roomId }) => {
     socket.join(`room/${roomId}`)
     rooms[socket.id] = { roomId, user }
-    socket.to(`room/${roomId}`).emit(
-      'SERVER@ROOMS:JOIN',
-      Object.values(rooms)
-        .filter((obj) => obj.roomId === roomId)
-        .map((obj) => obj.user),
-    )
+    const speakers = getUsersFromRoom(rooms, roomId)
+    io.emit('SERVER@ROOMS:HOME', { roomId: Number(roomId), speakers })
+    io.in(`room/${roomId}`).emit('SERVER@ROOMS:JOIN', speakers)
+    Room.update({ speakers }, { where: { id: roomId } })
   })
 
   socket.on('disconnect', () => {
@@ -85,6 +86,9 @@ io.on('connection', (socket) => {
       const { roomId, user } = rooms[socket.id]
       socket.broadcast.to(`room/${roomId}`).emit('SERVER@ROOMS:LEAVE', user)
       delete rooms[socket.id]
+      const speakers = getUsersFromRoom(rooms, roomId)
+      io.emit('SERVER@ROOMS:HOME', { roomId: Number(roomId), speakers })
+      Room.update({ speakers }, { where: { id: roomId } })
     }
   })
 })

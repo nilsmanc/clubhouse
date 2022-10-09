@@ -8,15 +8,23 @@ import Head from 'next/head'
 import { checkAuth } from '../utils/checkAuth'
 import { Api } from '../api'
 import { GetServerSideProps, NextPage } from 'next'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { selectRooms } from '../redux/selectors'
 import { wrapper } from '../redux/store'
-import { setRooms } from '../redux/slices/roomsSlice'
-import { setUserData } from '../redux/slices/userSlice'
+import { setRooms, setRoomSpeakers } from '../redux/slices/roomsSlice'
+import { useSocket } from '../hooks/useSocket'
 
 const RoomsPage: NextPage = () => {
   const [visibleModal, setVisibleModal] = React.useState(false)
   const rooms = useSelector(selectRooms)
+  const dispatch = useDispatch()
+  const socket = useSocket()
+
+  React.useEffect(() => {
+    socket.on('SERVER@ROOMS:HOME', ({ roomId, speakers }) => {
+      dispatch(setRoomSpeakers({ speakers, roomId }))
+    })
+  }, [])
 
   return (
     <>
@@ -39,7 +47,6 @@ const RoomsPage: NextPage = () => {
               <a className='d-flex'>
                 <ConversationCard
                   title={obj.title}
-                  avatars={[]}
                   speakers={obj.speakers}
                   listenersCount={obj.listenersCount}
                 />
