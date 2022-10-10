@@ -1,5 +1,5 @@
 import express from 'express'
-import { Code, User } from '../../models'
+import { User } from '../../models'
 import { generateRandomCode } from '../../utils/generateRandomCode'
 
 class AuthController {
@@ -26,7 +26,7 @@ class AuthController {
     const whereQuery = { code, user_id: userId }
 
     try {
-      const findCode = await Code.findOne({
+      const findCode = await User.findOne({
         where: whereQuery,
       })
 
@@ -45,6 +45,28 @@ class AuthController {
       console.log(error)
       res.status(500).json({
         message: 'Ошибка при активации аккаунта',
+      })
+    }
+  }
+
+  async getUserInfo(req: express.Request, res: express.Response) {
+    const userId = req.params.id
+
+    try {
+      const findUser = await User.findByPk(userId)
+      console.log(findUser, userId)
+
+      if (findUser) {
+        res.json(await findUser)
+      } else {
+        res.status(400).json({
+          message: 'Пользователь не найден',
+        })
+      }
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        message: 'Ошибка получении информации о пользователе',
       })
     }
   }

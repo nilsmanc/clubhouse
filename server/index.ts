@@ -7,6 +7,7 @@ import { createServer } from 'http'
 import cors from 'cors'
 import { passport } from './core/passport'
 import { uploader } from './core/uploader'
+
 import AuthController from './controllers/AuthController'
 import RoomController from './controllers/RoomController'
 import { Room } from '../models'
@@ -34,6 +35,7 @@ app.post('/rooms', passport.authenticate('jwt', { session: false }), RoomControl
 app.get('/rooms/:id', passport.authenticate('jwt', { session: false }), RoomController.show)
 app.delete('/rooms/:id', passport.authenticate('jwt', { session: false }), RoomController.delete)
 
+app.get('/user/:id', passport.authenticate('jwt', { session: false }), AuthController.getUserInfo)
 app.get('/auth/me', passport.authenticate('jwt', { session: false }), AuthController.getMe)
 app.get('/auth/sms', passport.authenticate('jwt', { session: false }), AuthController.sendSMS)
 app.get('/auth/github', passport.authenticate('github'))
@@ -80,16 +82,18 @@ io.on('connection', (socket) => {
     Room.update({ speakers }, { where: { id: roomId } })
   })
 
-  socket.on('CLIENT@ROOMS:CALL', ({ user, roomId, signal }) => {
+  socket.on('CLIENT@ROOMS:CALL', ({ targetUserId, callerUserId, roomId, signal }) => {
     socket.broadcast.to(`room/${roomId}`).emit('SERVER@ROOMS:CALL', {
-      user,
+      targetUserId,
+      callerUserId,
       signal,
     })
   })
 
-  socket.on('CLIENT@ROOMS:ANSWER', ({ targetUserId, roomId, signal }) => {
+  socket.on('CLIENT@ROOMS:ANSWER', ({ targetUserId, callerUserId, roomId, signal }) => {
     socket.broadcast.to(`room/${roomId}`).emit('SERVER@ROOMS:ANSWER', {
       targetUserId,
+      callerUserId,
       signal,
     })
   })
