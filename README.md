@@ -15,3 +15,5 @@ NodeJS, Express, Sequelize, Passport, JWT, Multer
 ![fifth](/public/static/5.png)
 
 ![sixth](/public/static/6.png)
+
+![seventh](/public/static/7.png)
